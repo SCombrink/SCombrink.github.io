@@ -563,11 +563,11 @@
         <div class="ebucks-layout">
             <div class="ebucks-col">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 10px;">
-                    <h2 style="margin:0; border:none; padding:0;">Sybrandt's Checklist</h2>
+                    <h2 style="margin:0; border:none; padding:0;">Fusion Checklist</h2>
                     <button id="clear-ebucks-s" class="secondary" onclick="clearEbucks('s')" style="padding: 4px 10px; font-size: 0.8rem;">Clear All</button>
                 </div>
-                <div id="sybrandt-checklist-main-header"></div>
-                <div id="sybrandt-checklist-main"></div>
+                <div id="fusion-checklist-main-header"></div>
+                <div id="fusion-checklist-main"></div>
                 <div style="text-align:center; margin-top:10px;">
                     <button onclick="addChecklistItem('s')" style="background-color: #3b82f6; color: white; border: none; width:100%; justify-content:center; padding: 10px; border-radius:6px; font-weight: bold; cursor: pointer;">+ Add Checklist Item</button>
                 </div>
@@ -581,11 +581,11 @@
             </div>
             <div class="ebucks-col">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 10px;">
-                    <h2 style="margin:0; border:none; padding:0;">Luisa's Checklist</h2>
+                    <h2 style="margin:0; border:none; padding:0;">Current Checklist</h2>
                     <button id="clear-ebucks-l" class="secondary" onclick="clearEbucks('l')" style="padding: 4px 10px; font-size: 0.8rem;">Clear All</button>
                 </div>
-                <div id="luisa-checklist-main-header"></div>
-                <div id="luisa-checklist-main"></div>
+                <div id="current-checklist-main-header"></div>
+                <div id="current-checklist-main"></div>
                 <div style="text-align:center; margin-top:10px;">
                     <button onclick="addChecklistItem('l')" style="background-color: #3b82f6; color: white; border: none; width:100%; justify-content:center; padding: 10px; border-radius:6px; font-weight: bold; cursor: pointer;">+ Add Checklist Item</button>
                 </div>
@@ -2178,10 +2178,13 @@
                     <td style="color:#6b7280; font-style:italic;">Budget Float (Auto)</td>
                     <td class="num-col planner-hide-mobile" style="color:#6b7280;">${marginInc === 0 ? '' : formatMoney(marginInc)}</td>
                     <td class="num-col planner-hide-mobile" style="color:#6b7280;">${marginExp === 0 ? '' : formatMoney(marginExp)}</td>
-                    <td class="num-col planner-show-mobile" style="color:#6b7280;">${formatMoney(marginInc - marginExp)}</td>
+                    <td class="num-col planner-show-mobile" style="color:#6b7280;">${formatMoney(margin)}</td>
                     <td class="planner-hide-mobile" style="color:#9ca3af; font-size:0.8rem; font-weight:bold;">AUTO</td>
                     <td class="planner-hide-mobile"></td>
-                    <td class="num-col" style="color:#6b7280;">${formatBalance(balance)}</td>
+                    <td class="num-col" style="color:#6b7280;">
+                        <span class="planner-hide-mobile">${formatBalance(balance)}</span>
+                        <span class="planner-show-mobile" style="${margin < 0 ? 'color:#dc2626;' : ''}">${margin < 0 ? '-' : ''}${formatMoney(Math.abs(margin))}</span>
+                    </td>
                 </tr>`;
 
                 balance += savings;
@@ -2193,22 +2196,25 @@
                     <td class="num-col planner-show-mobile" style="color:#6b7280;">${formatMoney(savings)}</td>
                     <td class="planner-hide-mobile" style="color:#9ca3af; font-size:0.8rem; font-weight:bold;">AUTO</td>
                     <td class="planner-hide-mobile"></td>
-                    <td class="num-col" style="color:#6b7280;">${formatBalance(balance)}</td>
+                    <td class="num-col" style="color:#6b7280;">
+                        <span class="planner-hide-mobile">${formatBalance(balance)}</span>
+                        <span class="planner-show-mobile">${formatMoney(savings)}</span>
+                    </td>
                 </tr>`;
 
                 monthPlannerItems.forEach(p => {
                     let baseBalForEdit = balance;
-                    balance += (p.inc - p.exp);
+                    let pNet = p.inc - p.exp;
+                    balance += pNet;
                     
                     if (activePlannerEditId === p.id) {
-                        let combinedVal = p.inc - p.exp;
                         html += `<tr class="planner-edit-row bg-grey" data-id="${p.id}" data-month="${mStr}" data-base-bal="${baseBalForEdit}" style="box-shadow: inset 0 0 0 2px #3b82f6;">
                             <td style="text-align:center;" class="planner-drag-mobile-hide"><span class="drag-handle" style="cursor:grab; color:#d1d5db;">≡</span></td>
                             <td><input type="text" id="pe-desc" style="width:100%; padding:6px; box-sizing:border-box;" value="${p.desc}" placeholder="Add Description" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
                             
                             <td class="num-col planner-hide-mobile"><input type="${inputType}" inputmode="text" id="pe-inc" style="width:100%; padding:6px; box-sizing:border-box; text-align:right;" value="${formatInputNumber(p.inc)}" placeholder="0" onfocus="handleNumberFocus(this, ${p.inc})" oninput="updatePlannerBalance()" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
                             <td class="num-col planner-hide-mobile"><input type="${inputType}" inputmode="text" id="pe-exp" style="width:100%; padding:6px; box-sizing:border-box; text-align:right;" value="${formatInputNumber(p.exp)}" placeholder="0" onfocus="handleNumberFocus(this, ${p.exp})" oninput="updatePlannerBalance()" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
-                            <td class="num-col planner-show-mobile"><input type="${inputType}" inputmode="text" id="pe-val" style="width:100%; padding:6px; box-sizing:border-box; text-align:right;" value="${formatInputNumber(combinedVal)}" placeholder="0" onfocus="handleNumberFocus(this, ${combinedVal})" oninput="updatePlannerBalance()" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
+                            <td class="num-col planner-show-mobile"><input type="${inputType}" inputmode="text" id="pe-val" style="width:100%; padding:6px; box-sizing:border-box; text-align:right;" value="${formatInputNumber(pNet)}" placeholder="0" onfocus="handleNumberFocus(this, ${pNet})" oninput="updatePlannerBalance()" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
 
                             <td class="planner-hide-mobile">
                                 <select id="pe-type" style="padding:6px; width:100%; box-sizing:border-box; font-size:0.9rem;">
@@ -2233,10 +2239,13 @@
                             <td>${dispDesc}</td>
                             <td class="num-col planner-hide-mobile">${p.inc === 0 ? '' : formatMoney(p.inc)}</td>
                             <td class="num-col planner-hide-mobile">${p.exp === 0 ? '' : formatMoney(p.exp)}</td>
-                            <td class="num-col planner-show-mobile">${formatMoney(p.inc - p.exp)}</td>
+                            <td class="num-col planner-show-mobile">${formatMoney(pNet)}</td>
                             <td class="planner-hide-mobile"><span style="background-color:${tagBg}; color:${tagColor}; padding: 3px 8px; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">${p.type}</span></td>
                             <td style="text-align:center;" class="planner-hide-mobile"></td>
-                            <td class="num-col">${formatBalance(balance)}</td>
+                            <td class="num-col">
+                                <span class="planner-hide-mobile">${formatBalance(balance)}</span>
+                                <span class="planner-show-mobile" style="${pNet < 0 ? 'color:#dc2626;' : ''}">${pNet < 0 ? '-' : ''}${formatMoney(Math.abs(pNet))}</span>
+                            </td>
                         </tr>`;
                     }
                 });
@@ -2246,15 +2255,25 @@
                 let discColor = discVar >= 0 ? "#059669" : "#dc2626";
                 let balFormat = balance < 0 ? `color:#dc2626; font-weight:normal;` : `color:#1f2937; font-weight:normal;`;
                 
-                html += `<tr class="bg-grey" style="border-top: 2px solid #1f2937;">
+                html += `<tr class="bg-white">
                     <td class="planner-drag-mobile-hide"></td>
-                    
-                    <td colspan="5" class="planner-hide-mobile" style="font-weight:bold; text-align:right; padding: 8px 15px 8px 10px;">Closing Balance</td>
-                    
-                    <td class="planner-show-mobile" style="font-weight:bold; text-align:right; padding: 8px 10px;">Closing Balance</td>
-                    <td class="planner-show-mobile"></td>
-                    
-                    <td class="num-col" style="font-weight:bold; font-size:1.1rem; color:#1f2937;">${formatBalance(balance)}</td>
+                    <td style="color:${discColor}; font-style:italic;">${discName} (Auto)</td>
+                    <td class="num-col planner-hide-mobile" style="color:${discColor};">${discVar >= 0 && discVar !== 0 ? formatMoney(discVar) : ''}</td>
+                    <td class="num-col planner-hide-mobile" style="color:${discColor};">${discVar < 0 ? formatMoney(Math.abs(discVar)) : ''}</td>
+                    <td class="num-col planner-show-mobile" style="color:${discColor};">${formatMoney(discVar)}</td>
+                    <td class="planner-hide-mobile" style="color:#9ca3af; font-size:0.8rem; font-weight:bold;">AUTO</td>
+                    <td class="planner-hide-mobile"></td>
+                    <td class="num-col" style="${balFormat}">
+                        <span class="planner-hide-mobile">${formatBalance(balance)}</span>
+                        <span class="planner-show-mobile" style="${discVar < 0 ? 'color:#dc2626;' : 'color:#059669;'}">${discVar < 0 ? '-' : ''}${formatMoney(Math.abs(discVar))}</span>
+                    </td>
+                </tr>`;
+
+                html += `<tr class="bg-grey">
+                    <td class="planner-drag-mobile-hide" style="border-top: 2px solid #1f2937;"></td>
+                    <td colspan="5" class="planner-hide-mobile" style="border-top: 2px solid #1f2937; font-weight:bold; text-align:right; padding: 8px 15px 8px 10px;">Closing Balance</td>
+                    <td colspan="2" class="planner-show-mobile" style="border-top: 2px solid #1f2937; font-weight:bold; text-align:right; padding: 8px 15px 8px 10px;">Closing Balance</td>
+                    <td class="num-col" style="border-top: 2px solid #1f2937; font-weight:bold; font-size:1.1rem; color:#1f2937;">${formatBalance(balance)}</td>
                 </tr>`;
 
                 html += `<tr>
@@ -2498,7 +2517,7 @@
         const btnL = document.getElementById('clear-ebucks-l');
         if (btnL) btnL.disabled = !lActive;
 
-        renderList(state.ebucksTemplate.s, monthData.s, 'sybrandt-checklist-main', 's', 'sybrandt-total', 'sybrandt-warning');
+        renderList(state.ebucksTemplate.s, monthData.s, 'fusion-checklist-main', 's', 'sybrandt-total', 'sybrandt-warning');
         renderList(state.ebucksTemplate.l, monthData.l, 'luisa-checklist-main', 'l', 'luisa-total', 'luisa-warning');
     }
 
