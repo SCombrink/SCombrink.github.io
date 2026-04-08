@@ -2285,35 +2285,28 @@
 
                 html += `<tr class="bg-grey">
                     <td class="planner-drag-mobile-hide" style="border-top: 2px solid #1f2937;"></td>
-                    
-                    <td colspan="5" class="planner-hide-mobile" style="border-top: 2px solid #1f2937; font-weight:bold; text-align:right; padding: 8px 15px 8px 10px;">Closing Balance</td>
-                    
-                    <td class="planner-show-mobile" style="border-top: 2px solid #1f2937; font-weight:bold; text-align:right; padding: 8px 10px;">Closing Balance</td>
-                    <td class="planner-show-mobile" style="border-top: 2px solid #1f2937;"></td>
-                    
-                    <td class="planner-hide-mobile" style="border-top: 2px solid #1f2937;"></td>
-                    
+                    <td style="border-top: 2px solid #1f2937; padding: 8px 10px;">
+                        <span class="planner-show-mobile" style="font-weight:bold; float:right;">Closing Balance</span>
+                    </td>
+                    <td class="num-col planner-hide-mobile" style="border-top: 2px solid #1f2937;"></td>
+                    <td class="num-col planner-hide-mobile" style="border-top: 2px solid #1f2937;"></td>
+                    <td class="num-col planner-show-mobile" style="border-top: 2px solid #1f2937;"></td>
+                    <td colspan="2" class="planner-hide-mobile" style="border-top: 2px solid #1f2937; font-weight:bold; text-align:right; padding: 8px 15px 8px 10px;">Closing Balance</td>
                     <td class="num-col" style="border-top: 2px solid #1f2937; font-weight:bold; font-size:1.1rem; color:#1f2937;">${formatBalance(balance)}</td>
                 </tr>`;
 
                 html += `<tr>
-                    <td class="planner-drag-mobile-hide" style="padding: 0; border-top: 1px dashed #d1d5db;"></td>
-                    
-                    <td colspan="5" class="planner-hide-mobile" style="padding: 0;">
-                        <button class="add-row-btn" style="width: 100%; justify-content: center; border: none; border-top: 1px dashed #d1d5db; border-radius: 0; padding: 12px; background: #f8fafc;" onclick="startAddPlannerItem('${mStr}', event)">
+                    <td class="planner-drag-mobile-hide" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
+                    <td style="border-top: 1px dashed #d1d5db; padding: 0;">
+                        <button class="add-row-btn" style="width: 100%; justify-content: flex-start; border: none; border-radius: 0; padding: 12px; background: transparent;" onclick="startAddPlannerItem('${mStr}', event)">
                             + Add Manual Entry
                         </button>
                     </td>
-                    
-                    <td class="planner-show-mobile" style="padding: 0;">
-                        <button class="add-row-btn" style="width: 100%; justify-content: flex-start; border: none; border-top: 1px dashed #d1d5db; border-radius: 0; padding: 12px; background: #f8fafc;" onclick="startAddPlannerItem('${mStr}', event)">
-                            + Add Manual Entry
-                        </button>
-                    </td>
-                    
-                    <td class="planner-show-mobile" style="padding: 0; border-top: 1px dashed #d1d5db;"></td>
-                    <td class="planner-hide-mobile" style="padding: 0; border-top: 1px dashed #d1d5db;"></td>
-                    <td style="padding: 0; border-top: 1px dashed #d1d5db;"></td>
+                    <td class="num-col planner-hide-mobile" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
+                    <td class="num-col planner-hide-mobile" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
+                    <td class="num-col planner-show-mobile" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
+                    <td colspan="2" class="planner-hide-mobile" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
+                    <td class="num-col" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
                 </tr>`;
             } else {
                 balance = endBalanceForHeader;
