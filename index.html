@@ -2169,8 +2169,8 @@
                 <td class="num-col planner-hide-mobile" style="font-weight:bold; color:#1f2937;">${monthExp === 0 ? '' : formatMoney(monthExp)}</td>
                 <td colspan="2" class="planner-hide-mobile" style="text-align: right; font-size: 0.85rem; color: #4b5563; font-weight: 600; white-space: nowrap; padding-right: 15px;">${isCollapsed ? '▼ Expand' : '▲ Collapse'}</td>
                 <td class="num-col" style="font-weight:bold; color:#1f2937;">
-                    <span class="long-text">${formatBalance(endBalanceForHeader)}</span>
-                    <span class="short-text">${formatMoney(monthInc - monthExp)}</span>
+                    <span class="long-text">${formatBalance(openingBalance)}</span>
+                    <span class="short-text">${formatBalance(openingBalance)}</span>
                 </td>
             </tr>`;
 
@@ -2645,55 +2645,114 @@
         dragObj.clone.remove();
         dragObj.targetRow.style.opacity = '1';
         
-        let newIndex = -1;
-        let elements = [];
-        
-        if (dragObj.type === 'category') {
-            elements = Array.from(document.querySelectorAll('.category-tbody'));
-        } else if (dragObj.type === 'item') {
-            elements = Array.from(document.querySelectorAll(`tr[data-sidx="${dragObj.sIdx}"][data-iidx]`));
-        } else if (dragObj.type === 'planner-item') {
-            elements = Array.from(document.querySelectorAll(`tr[data-id][data-month="${dragObj.mStr}"]`));
-        } else if (dragObj.type === 'checklist-item') {
-            elements = Array.from(document.querySelectorAll(`.checklist-item[data-person="${dragObj.prefix}"]`)).filter(el => !el.classList.contains('min-spend-row'));
-        }
-        
-        for (let i = 0; i < elements.length; i++) {
-            let rect = elements[i].getBoundingClientRect();
-            if (y < rect.top + (rect.height / 2)) {
-                newIndex = i;
-                break;
-            }
-        }
-        if (newIndex === -1) newIndex = elements.length - 1;
-
-        if (dragObj.type === 'category') {
-            let oldIdx = parseInt(dragObj.sIdx);
-            if (oldIdx !== newIndex) {
-                let arr = state.budgets[state.currentMonth];
-                arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
-                saveState(); renderBudget();
-            }
-        } else if (dragObj.type === 'item') {
-            let oldIdx = parseInt(dragObj.iIdx);
-            if (oldIdx !== newIndex) {
-                let arr = state.budgets[state.currentMonth][dragObj.sIdx].items;
-                arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
-                saveState(); renderBudget();
-            }
-        } else if (dragObj.type === 'checklist-item') {
-            let oldIdx = parseInt(dragObj.iIdx);
-            if (oldIdx !== newIndex) {
-                let arr = state.ebucksTemplate[dragObj.prefix];
-                arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
-                saveState(); renderChecklists();
-            }
-        } else if (dragObj.type === 'planner-item') {
+        if (dragObj.type === 'planner-item') {
             let itemIndex = state.planner.findIndex(p => p.id === dragObj.id);
             if (itemIndex > -1) {
+                let targetMonth = dragObj.mStr;
+                let allRows = Array.from(document.querySelectorAll('#planner-body tr'));
+                let hoverRow = null;
+                for (let i = 0; i < allRows.length; i++) {
+                    let rect = allRows[i].getBoundingClientRect();
+                    if (y >= rect.top && y <= rect.bottom) {
+                        hoverRow = allRows[i];
+                        break;
+                    }
+                }
+                
+                if (!hoverRow && allRows.length > 0) {
+                    for (let i = 0; i < allRows.length; i++) {
+                        if (y < allRows[i].getBoundingClientRect().top) { hoverRow = allRows[i > 0 ? i - 1 : 0]; break; }
+                    }
+                    if (!hoverRow) hoverRow = allRows[allRows.length - 1];
+                }
+
+                if (hoverRow) {
+                    if (hoverRow.hasAttribute('data-month-header')) {
+                        targetMonth = hoverRow.getAttribute('data-month-header');
+                    } else if (hoverRow.hasAttribute('data-month')) {
+                        targetMonth = hoverRow.getAttribute('data-month');
+                    } else {
+                        let prev = hoverRow.previousElementSibling;
+                        while(prev) {
+                            if (prev.hasAttribute('data-month-header')) {
+                                targetMonth = prev.getAttribute('data-month-header');
+                                break;
+                            }
+                            prev = prev.previousElementSibling;
+                        }
+                    }
+                }
+
                 let item = state.planner.splice(itemIndex, 1)[0];
-                state.planner.splice(newIndex, 0, item);
+                item.month = targetMonth;
+                
+                let insertIdx = state.planner.length;
+                if (hoverRow && hoverRow.hasAttribute('data-id')) {
+                    let hoverId = hoverRow.getAttribute('data-id');
+                    let hIdx = state.planner.findIndex(p => p.id === hoverId);
+                    if (hIdx > -1) {
+                        if (y > hoverRow.getBoundingClientRect().top + (hoverRow.getBoundingClientRect().height / 2)) {
+                            insertIdx = hIdx + 1;
+                        } else {
+                            insertIdx = hIdx;
+                        }
+                    }
+                } else if (hoverRow && hoverRow.hasAttribute('data-month-header')) {
+                    let firstItemIdx = state.planner.findIndex(p => p.month === targetMonth);
+                    if (firstItemIdx !== -1) insertIdx = firstItemIdx;
+                } else {
+                    let lastItemIdx = -1;
+                    for (let i = 0; i < state.planner.length; i++) {
+                         if (state.planner[i].month === targetMonth) lastItemIdx = i;
+                    }
+                    if (lastItemIdx !== -1) insertIdx = lastItemIdx + 1;
+                }
+                
+                state.planner.splice(insertIdx, 0, item);
                 saveState(); renderPlanner();
+            }
+        } else {
+            let newIndex = -1;
+            let elements = [];
+            
+            if (dragObj.type === 'category') {
+                elements = Array.from(document.querySelectorAll('.category-tbody'));
+            } else if (dragObj.type === 'item') {
+                elements = Array.from(document.querySelectorAll(`tr[data-sidx="${dragObj.sIdx}"][data-iidx]`));
+            } else if (dragObj.type === 'checklist-item') {
+                elements = Array.from(document.querySelectorAll(`.checklist-item[data-person="${dragObj.prefix}"]`)).filter(el => !el.classList.contains('min-spend-row'));
+            }
+            
+            for (let i = 0; i < elements.length; i++) {
+                let rect = elements[i].getBoundingClientRect();
+                if (y < rect.top + (rect.height / 2)) {
+                    newIndex = i;
+                    break;
+                }
+            }
+            if (newIndex === -1) newIndex = elements.length - 1;
+
+            if (dragObj.type === 'category') {
+                let oldIdx = parseInt(dragObj.sIdx);
+                if (oldIdx !== newIndex) {
+                    let arr = state.budgets[state.currentMonth];
+                    arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
+                    saveState(); renderBudget();
+                }
+            } else if (dragObj.type === 'item') {
+                let oldIdx = parseInt(dragObj.iIdx);
+                if (oldIdx !== newIndex) {
+                    let arr = state.budgets[state.currentMonth][dragObj.sIdx].items;
+                    arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
+                    saveState(); renderBudget();
+                }
+            } else if (dragObj.type === 'checklist-item') {
+                let oldIdx = parseInt(dragObj.iIdx);
+                if (oldIdx !== newIndex) {
+                    let arr = state.ebucksTemplate[dragObj.prefix];
+                    arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
+                    saveState(); renderChecklists();
+                }
             }
         }
         dragObj = null;
