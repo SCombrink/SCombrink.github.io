@@ -16,7 +16,7 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; font-size: 0.95rem; 
             -webkit-user-select: none;
             user-select: none;
-            position: relative; /* Anchors the absolute sidebar */
+            position: relative; 
         }
         input, select, textarea {
             -webkit-user-select: text;
@@ -25,8 +25,8 @@
         
         /* Layout & Smooth Sidebar Animation */
         .sidebar { 
-            position: absolute; /* Takes sidebar out of document flow */
-            left: 32px; /* Starts exactly after the toggle button */
+            position: absolute; 
+            left: 32px; 
             top: 0;
             height: 100%;
             width: 450px; 
@@ -34,8 +34,8 @@
             flex-shrink: 0; 
             overflow-x: hidden; 
             overflow-y: auto; 
-            z-index: 200; /* Ensures it sits above main content */
-            box-shadow: 5px 0 25px rgba(0,0,0,0.15); /* Stronger shadow for overlay effect */
+            z-index: 200; 
+            box-shadow: 5px 0 25px rgba(0,0,0,0.15); 
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         }
         .sidebar.hidden { width: 0; box-shadow: none; }
@@ -50,7 +50,12 @@
         .vertical-toggle:hover, .vertical-toggle:active { background-color: #111827; color: #ffffff; }
         .toggle-label { writing-mode: vertical-rl; text-orientation: mixed; margin-top: 15px; font-size: 0.75rem; letter-spacing: 1px; color: inherit; text-transform: uppercase; font-weight: 600;}
 
-        .main-content { flex: 1; padding: 0 40px 20px 40px; overflow-y: auto; scrollbar-gutter: stable; position: relative; background-color: #f3f4f6; scroll-behavior: smooth;}
+        /* Smooth scroll with forced overscroll bounce on mobile */
+        .main-content { 
+            flex: 1; padding: 0 40px 20px 40px; overflow-y: auto; scrollbar-gutter: stable; position: relative; 
+            background-color: #f3f4f6; scroll-behavior: smooth; 
+            -webkit-overflow-scrolling: touch; overscroll-behavior-y: auto;
+        }
         
         /* --- DYNAMIC HEADER WRAPPERS --- */
         .dash-header-wrap { display: flex; justify-content: space-between; align-items: center; margin: 20px 0 15px 0; flex-wrap: wrap; gap: 15px; }
@@ -61,9 +66,15 @@
         .date-badge-btn:hover { background-color: #a7f3d0 !important; }
         
         .budget-header-controls { display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; flex-shrink: 0; }
+        .budget-header-controls button { height: 36px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
         
         .short-text { display: none; } 
         
+        /* Desktop Expense Input Color */
+        @media (min-width: 601px) {
+            .expense-input { color: #dc2626 !important; }
+        }
+
         /* Responsive styling for Mobile */
         @media (max-width: 768px) {
             .dash-header-wrap { flex-direction: column; align-items: stretch; gap: 12px; }
@@ -87,7 +98,7 @@
             
             .budget-header-controls { gap: 4px !important; scrollbar-width: none; }
             .budget-header-controls::-webkit-scrollbar { display: none; }
-            .budget-header-controls button { padding: 6px 2px !important; font-size: 0.65rem !important; flex: 1; justify-content: center; }
+            .budget-header-controls button { padding: 6px 2px !important; font-size: 0.65rem !important; flex: 1; justify-content: center; height: 32px;}
             
             .long-text { display: none !important; }
             .short-text { display: inline !important; }
@@ -107,6 +118,8 @@
             .planner-table th, .planner-table td { padding: 4px 2px !important; font-size: 0.75rem; }
             #planner-body .num-col input { padding: 2px; font-size: 0.9rem !important;}
             
+            .add-row-btn-planner { padding: 8px !important; }
+
             /* Multi-Select Bar Mobile Shrink */
             #multi-select-bar { flex-direction: column; align-items: stretch; padding: 12px 10px; gap: 8px; }
             #multi-select-bar div { overflow-x: auto; padding-bottom: 5px; }
@@ -194,7 +207,6 @@
         .multi-select-cb { transform: scale(1.3); margin-right: 10px; cursor: pointer; }
         
         .floating-drag-clone { position: fixed; pointer-events: none; z-index: 9999; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.15); opacity: 0.95; border-collapse: collapse; }
-        .drag-placeholder td, .drag-placeholder div { background: #eff6ff !important; border: 2px dashed #3b82f6 !important; padding: 15px !important; text-align: center; color: #3b82f6; font-weight: bold; }
         
         .add-row-btn { background: transparent; border: 2px dashed #d1d5db; color: #6b7280; padding: 8px 15px; border-radius: 6px; justify-content: flex-start; cursor: pointer; font-weight: 600; transition: all 0.2s; display: inline-flex;}
         .add-row-btn:hover { border-color: #3b82f6; color: #3b82f6; background: #eff6ff; }
@@ -240,7 +252,7 @@
         
         /* Views */
         .view-section { display: none; animation: fadeIn 0.3s ease; }
-        .active-view { display: block !important; }
+        .active-view { display: block !important; min-height: calc(100vh + 1px); padding-bottom: 50px; }
         .padded-view { padding-top: 20px; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -1544,9 +1556,9 @@
         let html = `<thead>
             <tr>
                 <th></th>
-                <th class="num-col">Budget</th>
-                <th class="num-col">Actual</th>
-                <th class="num-col">Variance</th>
+                <th class="num-col" style="padding-bottom: 2px;">Budget</th>
+                <th class="num-col" style="padding-bottom: 2px;">Actual</th>
+                <th class="num-col" style="padding-bottom: 2px;">Variance</th>
             </tr>
         </thead>`; 
         
@@ -1557,6 +1569,7 @@
 
         data.forEach((sec, sIdx) => {
             const isCollapsed = state.collapsedCategories[sIdx];
+            const isExpense = sec.type === 'expense';
             
             let subB = 0, subA = 0;
             sec.items.forEach(item => {
@@ -1607,10 +1620,12 @@
                 let variance = (sec.type === 'income' || sec.type === 'gross income') ? item.actual - item.budget : item.budget - item.actual;
                 let varClass = variance > 0 ? 'positive' : (variance < 0 ? 'negative' : '');
                 
+                const budgetColorClass = isExpense ? 'expense-input' : '';
+                
                 const disabledAttrBudget = (isLocked || isAutoCalc || itemIsLocked || multiSelectMode) ? 'disabled' : '';
-                const inputClassBudget = (isLocked || isAutoCalc || itemIsLocked || multiSelectMode) ? 'locked-input table-input' : 'table-input';
+                const inputClassBudget = (isLocked || isAutoCalc || itemIsLocked || multiSelectMode) ? `locked-input table-input ${budgetColorClass}` : `table-input ${budgetColorClass}`;
                 const disabledAttrActual = (isAutoCalc || itemIsLocked || multiSelectMode) ? 'disabled' : '';
-                const inputClassActual = (isAutoCalc || itemIsLocked || multiSelectMode) ? 'locked-input table-input' : 'table-input';
+                const inputClassActual = (isAutoCalc || itemIsLocked || multiSelectMode) ? `locked-input table-input ${budgetColorClass}` : `table-input ${budgetColorClass}`;
                 
                 let rowClickEvent = `onclick="openEditItem('${id}', ${sIdx}, ${iIdx})"`;
                 if (multiSelectMode) { rowClickEvent = `onclick="toggleSelection(event, 'item', '${id}')"`; }
@@ -2346,12 +2361,12 @@
                 // 2. Credit cards surplus/overspent
                 balance += discVar;
                 let discName = discVar >= 0 ? "Credit cards surplus" : "Credit cards overspent";
-                let discColor = discVar >= 0 ? "#059669" : "#dc2626";
-                let balFormat = balance < 0 ? `color:#dc2626; font-weight:normal;` : `color:#1f2937; font-weight:normal;`;
+                let discColor = discVar > 0 ? "#059669" : (discVar < 0 ? "#dc2626" : "#6b7280");
+                let balFormat = balance < 0 ? `color:#dc2626; font-weight:normal;` : `color:#6b7280; font-weight:normal;`;
                 
                 html += `<tr class="bg-white" onclick="toggleRB('cc_${mStr}')">
                     <td class="planner-drag-mobile-hide"></td>
-                    <td style="color:#6b7280; font-style:italic;">${discName} (Auto)</td>
+                    <td style="color:${discColor}; font-style:italic;">${discName} (Auto)</td>
                     <td class="num-col planner-hide-mobile" style="color:${discColor};">${discVar >= 0 && discVar !== 0 ? formatMoney(discVar) : ''}</td>
                     <td class="num-col planner-hide-mobile" style="color:${discColor};">${discVar < 0 ? formatMoney(Math.abs(discVar)) : ''}</td>
                     <td class="planner-hide-mobile" style="color:#9ca3af; font-size:0.8rem; font-weight:bold;">AUTO</td>
@@ -2410,11 +2425,12 @@
                     </td>
                 </tr>`;
 
-                html += `<tr>
+                html += `<tr class="add-row-btn-tr">
                     <td class="planner-drag-mobile-hide" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
                     <td style="border-top: 1px dashed #d1d5db; padding: 0;">
-                        <button class="add-row-btn" style="width: 100%; justify-content: flex-start; border: none; border-radius: 0; padding: 12px; background: transparent;" onclick="startAddPlannerItem('${mStr}', event)">
-                            + Add Manual Entry
+                        <button class="add-row-btn add-row-btn-planner" style="width: 100%; justify-content: flex-start; border: none; border-radius: 0; padding: 12px; background: transparent;" onclick="startAddPlannerItem('${mStr}', event)">
+                            <span class="long-text">+ Add Manual Entry</span>
+                            <span class="short-text">+ Add Entry</span>
                         </button>
                     </td>
                     <td class="num-col planner-hide-mobile" style="border-top: 1px dashed #d1d5db; padding: 0;"></td>
@@ -2717,15 +2733,42 @@
         clone.classList.add('floating-drag-clone');
         clone.style.width = targetRow.offsetWidth + 'px';
         document.body.appendChild(clone);
+        
+        // Create the blue dashed placeholder row
+        let placeholder = document.createElement(targetRow.tagName);
+        placeholder.className = 'drag-placeholder';
+        if (targetRow.tagName === 'TR') {
+            let td = document.createElement('td');
+            td.colSpan = 10; 
+            td.style.backgroundColor = '#eff6ff';
+            td.style.boxShadow = 'inset 0 0 0 2px #3b82f6';
+            td.style.height = targetRow.getBoundingClientRect().height + 'px';
+            placeholder.appendChild(td);
+        } else if (targetRow.tagName === 'TBODY') {
+            let tr = document.createElement('tr');
+            let td = document.createElement('td');
+            td.colSpan = 10;
+            td.style.backgroundColor = '#eff6ff';
+            td.style.boxShadow = 'inset 0 0 0 2px #3b82f6';
+            td.style.height = '50px';
+            tr.appendChild(td);
+            placeholder.appendChild(tr);
+        } else {
+            placeholder.style.backgroundColor = '#eff6ff';
+            placeholder.style.boxShadow = 'inset 0 0 0 2px #3b82f6';
+            placeholder.style.height = targetRow.getBoundingClientRect().height + 'px';
+        }
+        
+        targetRow.parentNode.insertBefore(placeholder, targetRow.nextSibling);
 
         dragObj = {
-            type, id, sIdx, iIdx, mStr, prefix, targetRow, clone,
+            type, id, sIdx, iIdx, mStr, prefix, targetRow, clone, placeholder,
             startY: e.touches ? e.touches[0].clientY : e.clientY,
             startX: e.touches ? e.touches[0].clientX : e.clientX,
             offsetY: (e.touches ? e.touches[0].clientY : e.clientY) - targetRow.getBoundingClientRect().top
         };
 
-        targetRow.style.opacity = '0.3';
+        targetRow.style.display = 'none'; // hide original row immediately
         
         document.addEventListener('mousemove', dragMove, {passive: false});
         document.addEventListener('touchmove', dragMove, {passive: false});
@@ -2741,130 +2784,121 @@
         let y = e.touches ? e.touches[0].clientY : e.clientY;
         dragObj.clone.style.top = (y - dragObj.offsetY) + 'px';
         dragObj.clone.style.left = dragObj.targetRow.getBoundingClientRect().left + 'px';
+        
+        dragObj.clone.style.visibility = 'hidden';
+        let elemUnder = document.elementFromPoint(dragObj.startX, y);
+        dragObj.clone.style.visibility = 'visible';
+        
+        if (!elemUnder) return;
+        
+        let hoverRow;
+        if (dragObj.type === 'category') hoverRow = elemUnder.closest('.category-tbody');
+        else if (dragObj.type === 'item') hoverRow = elemUnder.closest(`tr[data-sidx="${dragObj.sIdx}"]`);
+        else if (dragObj.type === 'planner-item') {
+            hoverRow = elemUnder.closest('tr');
+            if (hoverRow && (hoverRow.closest('thead') || hoverRow.classList.contains('add-row-btn-tr') || hoverRow.classList.contains('mobile-rb-row'))) {
+                hoverRow = null; 
+            }
+        }
+        else if (dragObj.type === 'checklist-item') hoverRow = elemUnder.closest(`.checklist-item[data-person="${dragObj.prefix}"]`);
+        
+        if (hoverRow && hoverRow !== dragObj.placeholder && hoverRow !== dragObj.targetRow) {
+            let rect = hoverRow.getBoundingClientRect();
+            let isAfter = y > rect.top + rect.height / 2;
+            if (isAfter) hoverRow.parentNode.insertBefore(dragObj.placeholder, hoverRow.nextSibling);
+            else hoverRow.parentNode.insertBefore(dragObj.placeholder, hoverRow);
+        }
     }
     
     function dragEnd(e) {
         if (!dragObj) return;
-        let y = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
         
         document.removeEventListener('mousemove', dragMove);
         document.removeEventListener('touchmove', dragMove);
         document.removeEventListener('mouseup', dragEnd);
         document.removeEventListener('touchend', dragEnd);
         
-        dragObj.clone.remove();
-        dragObj.targetRow.style.opacity = '1';
+        let ph = dragObj.placeholder;
         
         if (dragObj.type === 'planner-item') {
-            let itemIndex = state.planner.findIndex(p => p.id === dragObj.id);
-            if (itemIndex > -1) {
-                let targetMonth = dragObj.mStr;
-                let allRows = Array.from(document.querySelectorAll('#planner-body tr'));
-                let hoverRow = null;
-                for (let i = 0; i < allRows.length; i++) {
-                    let rect = allRows[i].getBoundingClientRect();
-                    if (y >= rect.top && y <= rect.bottom) {
-                        hoverRow = allRows[i];
-                        break;
-                    }
-                }
-                
-                if (!hoverRow && allRows.length > 0) {
-                    for (let i = 0; i < allRows.length; i++) {
-                        if (y < allRows[i].getBoundingClientRect().top) { hoverRow = allRows[i > 0 ? i - 1 : 0]; break; }
-                    }
-                    if (!hoverRow) hoverRow = allRows[allRows.length - 1];
-                }
-
-                if (hoverRow) {
-                    if (hoverRow.hasAttribute('data-month-header')) {
-                        targetMonth = hoverRow.getAttribute('data-month-header');
-                    } else if (hoverRow.hasAttribute('data-month')) {
-                        targetMonth = hoverRow.getAttribute('data-month');
-                    } else {
-                        let prev = hoverRow.previousElementSibling;
-                        while(prev) {
-                            if (prev.hasAttribute('data-month-header')) {
-                                targetMonth = prev.getAttribute('data-month-header');
-                                break;
-                            }
-                            prev = prev.previousElementSibling;
-                        }
-                    }
-                }
-
-                let item = state.planner.splice(itemIndex, 1)[0];
-                item.month = targetMonth;
-                
-                let insertIdx = state.planner.length;
-                if (hoverRow && hoverRow.hasAttribute('data-id')) {
-                    let hoverId = hoverRow.getAttribute('data-id');
-                    let hIdx = state.planner.findIndex(p => p.id === hoverId);
-                    if (hIdx > -1) {
-                        if (y > hoverRow.getBoundingClientRect().top + (hoverRow.getBoundingClientRect().height / 2)) {
-                            insertIdx = hIdx + 1;
-                        } else {
-                            insertIdx = hIdx;
-                        }
-                    }
-                } else if (hoverRow && hoverRow.hasAttribute('data-month-header')) {
-                    let firstItemIdx = state.planner.findIndex(p => p.month === targetMonth);
-                    if (firstItemIdx !== -1) insertIdx = firstItemIdx;
-                } else {
-                    let lastItemIdx = -1;
-                    for (let i = 0; i < state.planner.length; i++) {
-                         if (state.planner[i].month === targetMonth) lastItemIdx = i;
-                    }
-                    if (lastItemIdx !== -1) insertIdx = lastItemIdx + 1;
-                }
-                
-                state.planner.splice(insertIdx, 0, item);
-                saveState(); renderPlanner();
-            }
-        } else {
-            let newIndex = -1;
-            let elements = [];
+            let prev = ph.previousElementSibling;
+            let targetMonth = null;
             
-            if (dragObj.type === 'category') {
-                elements = Array.from(document.querySelectorAll('.category-tbody'));
-            } else if (dragObj.type === 'item') {
-                elements = Array.from(document.querySelectorAll(`tr[data-sidx="${dragObj.sIdx}"][data-iidx]`));
-            } else if (dragObj.type === 'checklist-item') {
-                elements = Array.from(document.querySelectorAll(`.checklist-item[data-person="${dragObj.prefix}"]`)).filter(el => !el.classList.contains('min-spend-row'));
-            }
-            
-            for (let i = 0; i < elements.length; i++) {
-                let rect = elements[i].getBoundingClientRect();
-                if (y < rect.top + (rect.height / 2)) {
-                    newIndex = i;
+            let temp = prev;
+            while(temp) {
+                if (temp.hasAttribute('data-month-header')) {
+                    targetMonth = temp.getAttribute('data-month-header');
                     break;
                 }
+                temp = temp.previousElementSibling;
             }
-            if (newIndex === -1) newIndex = elements.length - 1;
-
-            if (dragObj.type === 'category') {
-                let oldIdx = parseInt(dragObj.sIdx);
-                if (oldIdx !== newIndex) {
-                    let arr = state.budgets[state.currentMonth];
-                    arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
-                    saveState(); renderBudget();
+            
+            if(!targetMonth) { targetMonth = dragObj.mStr; }
+            
+            let insertIdx = 0;
+            temp = ph.previousElementSibling;
+            while(temp && !temp.hasAttribute('data-month-header')) {
+                if (temp.hasAttribute('data-id') && temp !== dragObj.targetRow) {
+                    insertIdx++;
                 }
-            } else if (dragObj.type === 'item') {
-                let oldIdx = parseInt(dragObj.iIdx);
-                if (oldIdx !== newIndex) {
-                    let arr = state.budgets[state.currentMonth][dragObj.sIdx].items;
-                    arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
-                    saveState(); renderBudget();
-                }
-            } else if (dragObj.type === 'checklist-item') {
-                let oldIdx = parseInt(dragObj.iIdx);
-                if (oldIdx !== newIndex) {
-                    let arr = state.ebucksTemplate[dragObj.prefix];
-                    arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
-                    saveState(); renderChecklists();
-                }
+                temp = temp.previousElementSibling;
             }
+            
+            let itemIndex = state.planner.findIndex(p => p.id === dragObj.id);
+            let item = state.planner.splice(itemIndex, 1)[0];
+            item.month = targetMonth;
+            
+            let absIdx = 0;
+            let foundMonth = false;
+            for(let i=0; i<state.planner.length; i++) {
+                if (state.planner[i].month === targetMonth) {
+                    foundMonth = true;
+                    if (insertIdx === 0) { absIdx = i; break; }
+                    insertIdx--;
+                } else if (foundMonth) {
+                    absIdx = i;
+                    break;
+                }
+                absIdx = i + 1;
+            }
+            
+            state.planner.splice(absIdx, 0, item);
+            saveState(); renderPlanner();
+            
+        } else if (dragObj.type === 'item') {
+            let trs = Array.from(ph.parentNode.children).filter(el => el.hasAttribute('data-iidx') && el !== dragObj.targetRow);
+            let newIndex = trs.indexOf(ph.previousElementSibling) + 1;
+            if(ph.previousElementSibling && !ph.previousElementSibling.hasAttribute('data-iidx')) newIndex = 0; 
+            
+            let oldIdx = parseInt(dragObj.iIdx);
+            let arr = state.budgets[state.currentMonth][dragObj.sIdx].items;
+            newIndex = Math.max(0, Math.min(newIndex, arr.length - 1));
+            arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
+            saveState(); renderBudget();
+            
+        } else if (dragObj.type === 'category') {
+            let tbodys = Array.from(ph.parentNode.children).filter(el => el.classList.contains('category-tbody') && el !== dragObj.targetRow);
+            let newIndex = tbodys.indexOf(ph.previousElementSibling) + 1;
+            
+            let oldIdx = parseInt(dragObj.sIdx);
+            let arr = state.budgets[state.currentMonth];
+            newIndex = Math.max(0, Math.min(newIndex, arr.length - 1));
+            arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
+            saveState(); renderBudget();
+        } else if (dragObj.type === 'checklist-item') {
+             let items = Array.from(ph.parentNode.children).filter(el => el.classList.contains('checklist-item') && !el.classList.contains('min-spend-row') && el !== dragObj.targetRow);
+             let newIndex = items.indexOf(ph.previousElementSibling) + 1;
+             
+             let oldIdx = parseInt(dragObj.iIdx);
+             let arr = state.ebucksTemplate[dragObj.prefix];
+             newIndex = Math.max(0, Math.min(newIndex, arr.length - 1));
+             arr.splice(newIndex, 0, arr.splice(oldIdx, 1)[0]);
+             saveState(); renderChecklists();
         }
+
+        dragObj.placeholder.remove();
+        dragObj.clone.remove();
+        dragObj.targetRow.style.display = '';
         dragObj = null;
     }
 
