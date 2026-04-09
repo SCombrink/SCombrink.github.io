@@ -16,6 +16,7 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f3f4f6; color: #1f2937; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden; font-size: 0.95rem; 
             -webkit-user-select: none;
             user-select: none;
+            position: relative; /* Anchors the absolute sidebar */
         }
         input, select, textarea {
             -webkit-user-select: text;
@@ -24,16 +25,26 @@
         
         /* Layout & Smooth Sidebar Animation */
         .sidebar { 
-            width: 450px; background: #ffffff; flex-shrink: 0; overflow-x: hidden; overflow-y: auto; 
-            z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            position: absolute; /* Takes sidebar out of document flow */
+            left: 32px; /* Starts exactly after the toggle button */
+            top: 0;
+            height: 100%;
+            width: 450px; 
+            background: #ffffff; 
+            flex-shrink: 0; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            z-index: 200; /* Ensures it sits above main content */
+            box-shadow: 5px 0 25px rgba(0,0,0,0.15); /* Stronger shadow for overlay effect */
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
         }
-        .sidebar.hidden { width: 0; }
+        .sidebar.hidden { width: 0; box-shadow: none; }
         .sidebar-inner { width: 450px; display: flex; flex-direction: column; height: 100%;}
         
         /* Full Vertical Toggle Button */
         .vertical-toggle { 
             width: 32px; background-color: #1f2937; color: #9ca3af; border: none; cursor: pointer; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; z-index: 50; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; z-index: 250; 
             transition: background 0.2s, color 0.2s; font-size: 1.2rem; box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         .vertical-toggle:hover, .vertical-toggle:active { background-color: #111827; color: #ffffff; }
@@ -782,6 +793,27 @@
             }
         }
     });
+
+    // Close sidebar on click outside
+    document.addEventListener('mousedown', function(e) {
+        const sidebar = document.getElementById('app-sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle-btn');
+        if (sidebar && toggleBtn && !sidebar.classList.contains('hidden')) {
+            if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                hideSidebar();
+            }
+        }
+    });
+
+    document.addEventListener('touchstart', function(e) {
+        const sidebar = document.getElementById('app-sidebar');
+        const toggleBtn = document.getElementById('sidebar-toggle-btn');
+        if (sidebar && toggleBtn && !sidebar.classList.contains('hidden')) {
+            if (!sidebar.contains(e.target) && !toggleBtn.contains(e.target)) {
+                hideSidebar();
+            }
+        }
+    }, {passive: true});
 
     function calculateGrossSalaries() {
         if (!state.currentMonth || !state.budgets[state.currentMonth]) return;
@@ -2173,7 +2205,10 @@
     }
     
     function openTypeMenu(id, event) {
-        if(event) event.stopPropagation();
+        if(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
         activeTypeEditId = id;
         document.getElementById('type-menu-modal').style.display = 'flex';
     }
