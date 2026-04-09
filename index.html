@@ -2115,6 +2115,44 @@
         if (balEl) {
             balEl.innerHTML = formatBalance(newBal);
         }
+        
+        const rbValShort = document.getElementById('rb_val_edit_short');
+        const rbValLong = document.getElementById('rb_val_edit_long');
+        if (rbValShort) rbValShort.innerHTML = formatBalance(newBal);
+        if (rbValLong) rbValLong.innerHTML = formatBalance(newBal);
+    }
+
+    function toggleRB(id) {
+        if (window.innerWidth > 600) return;
+        const el = document.getElementById('rb_' + id);
+        if (el) {
+            const isShown = el.style.display === 'table-row';
+            document.querySelectorAll('.mobile-rb-row').forEach(row => {
+                if (!row.classList.contains('is-edit-rb')) {
+                    row.style.display = 'none';
+                }
+            });
+            el.style.display = isShown ? 'none' : 'table-row';
+        }
+    }
+
+    function getRunningBalanceRow(id, balanceAmount, isEditMode = false) {
+        const displayStyle = isEditMode && window.innerWidth <= 600 ? 'table-row' : 'none';
+        const editClass = isEditMode ? 'is-edit-rb' : '';
+        return `<tr class="bg-grey mobile-rb-row ${editClass}" id="rb_${id}" style="display: ${displayStyle};">
+            <td class="planner-drag-mobile-hide" style="border-top: 2px solid #1f2937;"></td>
+            <td style="border-top: 2px solid #1f2937; padding: 8px 10px;">
+                <span class="short-text" style="font-weight:bold; float:right;">Running Balance</span>
+                <span class="long-text" style="font-weight:bold; float:right;">Running Balance</span>
+            </td>
+            <td class="num-col planner-hide-mobile" style="border-top: 2px solid #1f2937;"></td>
+            <td class="num-col planner-hide-mobile" style="border-top: 2px solid #1f2937;"></td>
+            <td colspan="2" class="planner-hide-mobile" style="border-top: 2px solid #1f2937; font-weight:bold; text-align:right; padding: 8px 15px 8px 10px;">Running Balance</td>
+            <td class="num-col" style="border-top: 2px solid #1f2937; font-weight:bold; color:#1f2937;">
+                <span class="long-text" style="font-size:1.1rem;" id="rb_val_${id}_long">${formatBalance(balanceAmount)}</span>
+                <span class="short-text" style="font-size:1.1rem;" id="rb_val_${id}_short">${formatBalance(balanceAmount)}</span>
+            </td>
+        </tr>`;
     }
 
     function renderPlanner() {
@@ -2175,6 +2213,8 @@
             </tr>`;
 
             if (!isCollapsed) {
+                
+                // 1. Planner Items
                 monthPlannerItems.forEach(p => {
                     let baseBalForEdit = balance;
                     let pNet = p.inc - p.exp;
@@ -2206,6 +2246,7 @@
                                 </span>
                             </td>
                         </tr>`;
+                        html += getRunningBalanceRow('edit', balance, true);
                     } else {
                         let dispDesc = p.desc || `<span style="color:#9ca3af;font-style:italic;">Add Description</span>`;
                         let tagColor = p.type === 'Actual' ? '#0369a1' : '#0f766e';
@@ -2226,12 +2267,13 @@
                     }
                 });
 
+                // 2. Credit cards surplus/overspent
                 balance += discVar;
                 let discName = discVar >= 0 ? "Credit cards surplus" : "Credit cards overspent";
                 let discColor = discVar >= 0 ? "#059669" : "#dc2626";
                 let balFormat = balance < 0 ? `color:#dc2626; font-weight:normal;` : `color:#1f2937; font-weight:normal;`;
                 
-                html += `<tr class="bg-white">
+                html += `<tr class="bg-white" onclick="toggleRB('cc_${mStr}')">
                     <td class="planner-drag-mobile-hide"></td>
                     <td style="color:${discColor}; font-style:italic;">${discName} (Auto)</td>
                     <td class="num-col planner-hide-mobile" style="color:${discColor};">${discVar >= 0 && discVar !== 0 ? formatMoney(discVar) : ''}</td>
@@ -2243,9 +2285,11 @@
                         <span class="short-text" style="${discVar < 0 ? 'color:#dc2626;' : 'color:#059669;'}">${discVar < 0 ? '-' : ''}${formatMoney(Math.abs(discVar))}</span>
                     </td>
                 </tr>`;
+                html += getRunningBalanceRow('cc_' + mStr, balance);
 
+                // 3. Budget Float (Auto)
                 balance += margin;
-                html += `<tr class="bg-white">
+                html += `<tr class="bg-white" onclick="toggleRB('float_${mStr}')">
                     <td class="planner-drag-mobile-hide"></td>
                     <td style="color:#6b7280; font-style:italic;">Budget Float (Auto)</td>
                     <td class="num-col planner-hide-mobile" style="color:#6b7280;">${marginInc === 0 ? '' : formatMoney(marginInc)}</td>
@@ -2257,9 +2301,11 @@
                         <span class="short-text" style="${margin < 0 ? 'color:#dc2626;' : ''}">${margin < 0 ? '-' : ''}${formatMoney(Math.abs(margin))}</span>
                     </td>
                 </tr>`;
+                html += getRunningBalanceRow('float_' + mStr, balance);
 
+                // 4. Savings (Auto)
                 balance += savings;
-                html += `<tr class="bg-white clickable-row" onclick="openSavingsModal('${mStr}')">
+                html += `<tr class="bg-white clickable-row" onclick="toggleRB('savings_${mStr}'); openSavingsModal('${mStr}')">
                     <td class="planner-drag-mobile-hide"></td>
                     <td style="color:#6b7280; font-style:italic; cursor:pointer;">Savings (Auto) <span style="color:#9ca3af; font-size:0.85rem;">⚙</span></td>
                     <td class="num-col planner-hide-mobile" style="color:#6b7280;">${savings === 0 ? '' : formatMoney(savings)}</td>
@@ -2271,7 +2317,9 @@
                         <span class="short-text">${formatMoney(savings)}</span>
                     </td>
                 </tr>`;
+                html += getRunningBalanceRow('savings_' + mStr, balance);
 
+                // 5. Closing Balance
                 html += `<tr class="bg-grey">
                     <td class="planner-drag-mobile-hide" style="border-top: 2px solid #1f2937;"></td>
                     <td style="border-top: 2px solid #1f2937; padding: 8px 10px;">
