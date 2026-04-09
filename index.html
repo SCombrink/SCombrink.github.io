@@ -105,6 +105,9 @@
         }
 
         .planner-show-mobile { display: none !important; }
+        
+        /* Enforce Fixed Table Layout for Planner */
+        .planner-table { table-layout: fixed; width: 100%; }
 
         h1, h2, h3 { color: #111827; }
         .panel { padding: 20px; border-bottom: 2px solid #e5e7eb; }
@@ -376,10 +379,10 @@
             <table class="planner-table">
                 <thead><tr>
                     <th class="planner-drag-mobile-hide" style="width: 30px; text-align:center;"></th>
-                    <th>Description</th>
-                    <th class="num-col planner-hide-mobile">Income</th>
-                    <th class="num-col planner-hide-mobile">Expense</th>
-                    <th class="planner-hide-mobile">Type</th>
+                    <th style="width: 35%;">Description</th>
+                    <th class="num-col planner-hide-mobile" style="width: 15%;">Income</th>
+                    <th class="num-col planner-hide-mobile" style="width: 15%;">Expense</th>
+                    <th class="planner-hide-mobile" style="width: 10%;">Type</th>
                     <th style="width: 60px; text-align:center;" class="planner-hide-mobile"></th>
                     <th class="num-col">Balance</th>
                 </tr></thead>
