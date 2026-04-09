@@ -7,7 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Budget">
-    <meta name="theme-color" content="#1f2937">
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f3f4f6">
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111827">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <style>
@@ -280,6 +281,74 @@
         .tq-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px;}
         .tq-btn { background-color: #f3f4f6; color: #1f2937; border: 2px solid #d1d5db; border-radius: 8px; padding: 15px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: all 0.2s; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 80px; width: 100%; box-sizing: border-box; }
         .tq-btn:hover { background-color: #e5e7eb; border-color: #9ca3af; }
+        
+        /* --- AUTO DARK MODE --- */
+        @media (prefers-color-scheme: dark) {
+            /* Main Backgrounds & Text */
+            body, .main-content { background-color: #111827; color: #f3f4f6; }
+            h1, h2, h3, .panel-title, .dash-title-row h1, .val-input { color: #ffffff !important; }
+            
+            /* Panels, Sidebar & Tables */
+            .sidebar, .panel, table, .ebucks-col, .modal-content, .bg-white, 
+            #quick-add-cat-container, #edit-panel-main, #gross-links-container { 
+                background: #1f2937 !important; 
+                border-color: #374151 !important; 
+            }
+            
+            /* Headers & Highlight Rows */
+            th, .section-header, .bg-grey, .checklist-item.min-spend-row, .planner-month-header { 
+                background-color: #374151 !important; 
+                color: #f3f4f6 !important; 
+                border-color: #4b5563 !important; 
+            }
+            
+            /* Hover States */
+            .clickable-row:hover, .section-header:hover, .planner-month-header:hover, .month-list-item:hover { 
+                background-color: #374151 !important; 
+            }
+            
+            /* Borders */
+            td, th, .panel, .ebucks-total-row, .checklist-item, .date-picker-list { 
+                border-color: #374151 !important; 
+            }
+            
+            /* Inputs & Selects */
+            input[type="text"], input[type="month"], input[type="password"], select, .table-input:focus { 
+                background-color: #374151 !important; 
+                color: #f3f4f6 !important; 
+                border-color: #4b5563 !important; 
+            }
+            .table-input { color: #f3f4f6 !important; }
+            #edit-name::placeholder { color: #6b7280; }
+            
+            /* Buttons */
+            button.secondary { background: #374151; color: #d1d5db; border-color: #4b5563; }
+            button.secondary:hover:not(:disabled) { background: #4b5563; }
+            button.nav-btn, .tq-btn { background: #374151; color: #f3f4f6; border-color: #4b5563; }
+            button.nav-btn:hover, .tq-btn:hover { background: #4b5563; border-color: #6b7280; }
+            
+            /* Specific Components */
+            .date-badge-btn { background-color: #064e3b !important; color: #a7f3d0 !important; border-color: #059669 !important; }
+            .date-badge-btn:hover { background-color: #065f46 !important; }
+            .summary-dashboard { background-color: #0f172a; border-top: 1px solid #1e293b; }
+            .day-badge { background-color: #4b5563; color: #f3f4f6; }
+            .cc-box { background: #422006; border-color: #713f12; }
+            .drag-placeholder td, .drag-placeholder div { background: #1e3a8a !important; border-color: #3b82f6 !important; }
+            .floating-drag-clone { background: #1f2937 !important; }
+            
+            /* Force Inline Style Overrides */
+            [style*="color: #4b5563"], [style*="color:#4b5563"], 
+            [style*="color: #1f2937"], [style*="color:#1f2937"],
+            .ebucks-total-row h3 { 
+                color: #d1d5db !important; 
+            }
+            [style*="background: #f3f4f6"], [style*="background-color: #f3f4f6"] {
+                background-color: #1f2937 !important;
+            }
+            [style*="background: #f9fafb"] {
+                background-color: #374151 !important;
+            }
+        }
     </style>
 </head>
 <body>
