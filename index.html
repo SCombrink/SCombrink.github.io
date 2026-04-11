@@ -200,7 +200,7 @@
         .planner-month-header { background-color: #e5e7eb; border-top: 2px solid #d1d5db; cursor: pointer; transition: background 0.2s; }
         .planner-month-header:hover { background-color: #d1d5db; }
 
-        .clickable-row { cursor: pointer; transition: background 0.2s, transform 0.2s ease-out; }
+        .clickable-row { cursor: pointer; transition: background 0.2s, transform 0.2s ease-out; -webkit-touch-callout: none; }
         .clickable-row:hover { background-color: #f0f9ff; }
         
         .drag-handle { cursor: grab; color: #9ca3af; padding-right: 10px; font-weight: bold; font-size: 1.2rem; user-select: none; touch-action: none; display: inline-flex; align-items: center; justify-content: center; width: 20px;}
@@ -801,6 +801,8 @@
     
     let plannerDragTimer = null;
     let isPlannerDragging = false;
+    let plannerTouchStartX = 0;
+    let plannerTouchStartY = 0;
 
     if (!state || state.version < 14.17) {
         let oldState = state || JSON.parse(localStorage.getItem('budgetApp_v14.16')) || JSON.parse(localStorage.getItem('budgetApp_v14.15')) || { budgets: {}, planner: [], ebucks: { s: {}, l: {} }, lockedMonths: {}, collapsedCategories: {}, collapsedPlannerMonths: {} };
@@ -969,20 +971,35 @@
     
     function handlePressEnd() { clearTimeout(pressTimer); }
     
+    // --- IMPROVED MOBILE PLANNER DRAGGING ---
     function handlePlannerTouchStart(e, id, mStr) {
-        if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('.short-text[onclick]')) return;
+        if (e.target.closest('.drag-handle') || e.target.closest('button') || e.target.closest('.short-text[onclick]') || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+        
+        plannerTouchStartX = e.touches[0].clientX;
+        plannerTouchStartY = e.touches[0].clientY;
+
         plannerDragTimer = setTimeout(() => {
             isPlannerDragging = true;
+            if(navigator.vibrate) navigator.vibrate(50); // Haptic feedback on mobile if supported
             startCustomDrag(e, 'planner-item', id, null, null, mStr);
         }, 400); 
     }
 
-    function handlePlannerTouchMove() {
-        clearTimeout(plannerDragTimer);
+    function handlePlannerTouchMove(e) {
+        if (!plannerDragTimer) return;
+        let diffX = Math.abs(e.touches[0].clientX - plannerTouchStartX);
+        let diffY = Math.abs(e.touches[0].clientY - plannerTouchStartY);
+        
+        // Add a 15px movement tolerance before killing the drag timeout
+        if (diffX > 15 || diffY > 15) {
+            clearTimeout(plannerDragTimer);
+            plannerDragTimer = null;
+        }
     }
 
     function handlePlannerTouchEnd() {
         clearTimeout(plannerDragTimer);
+        plannerDragTimer = null;
         setTimeout(() => { isPlannerDragging = false; }, 100);
     }
     
@@ -2372,6 +2389,47 @@
         }
         closeTypeMenu();
     }
+    
+    // --- MOVE ITEM UP AND DOWN ARROWS ---
+    function movePlannerItem(id, direction, event) {
+        if (event) { event.preventDefault(); event.stopPropagation(); }
+        
+        // Ensure we capture any current typing changes before moving
+        const item = state.planner.find(p => p.id === id);
+        if (item) {
+            const descEl = document.getElementById('pe-desc');
+            if(descEl) item.desc = descEl.value;
+            // Native accept planner logic grabs math formatting too. Let's trigger it directly.
+        }
+        
+        acceptPlannerEdit(); // This forces save and nullifies active edit mode
+        
+        let idx = state.planner.findIndex(p => p.id === id);
+        if (idx === -1) return;
+        
+        let month = state.planner[idx].month;
+        let swapIdx = -1;
+        
+        if (direction === 'up') {
+            for (let i = idx - 1; i >= 0; i--) {
+                if (state.planner[i].month === month) { swapIdx = i; break; }
+            }
+        } else {
+            for (let i = idx + 1; i < state.planner.length; i++) {
+                if (state.planner[i].month === month) { swapIdx = i; break; }
+            }
+        }
+        
+        if (swapIdx !== -1) {
+            let temp = state.planner[idx];
+            state.planner[idx] = state.planner[swapIdx];
+            state.planner[swapIdx] = temp;
+            saveState();
+        }
+        
+        // Re-open the edit mode automatically for the moved item
+        openPlannerEdit(id);
+    }
 
     function renderPlanner() {
         let balance = getInitialPlannerBalance(state.currentMonth);
@@ -2441,13 +2499,22 @@
                     if (activePlannerEditId === p.id) {
                         html += `<tr class="planner-edit-row bg-grey" data-id="${p.id}" data-month="${mStr}" data-base-bal="${baseBalForEdit}" style="box-shadow: inset 0 0 0 2px #3b82f6;">
                             <td style="text-align:center;" class="planner-drag-mobile-hide"><span class="drag-handle" style="cursor:grab; color:#d1d5db;">≡</span></td>
-                            <td><input type="text" id="pe-desc" style="width:100%; padding:6px; box-sizing:border-box;" value="${p.desc}" placeholder="Add Description" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
+                            
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="display: flex; flex-direction: column; gap: 2px; flex-shrink: 0;">
+                                        <button class="secondary" style="padding: 2px; font-size: 0.6rem; line-height: 1; min-width: 24px; border-radius: 4px; display: flex; justify-content: center;" onmousedown="movePlannerItem('${p.id}', 'up', event)" ontouchstart="movePlannerItem('${p.id}', 'up', event)">▲</button>
+                                        <button class="secondary" style="padding: 2px; font-size: 0.6rem; line-height: 1; min-width: 24px; border-radius: 4px; display: flex; justify-content: center;" onmousedown="movePlannerItem('${p.id}', 'down', event)" ontouchstart="movePlannerItem('${p.id}', 'down', event)">▼</button>
+                                    </div>
+                                    <input type="text" id="pe-desc" style="flex: 1; padding:6px; box-sizing:border-box;" value="${p.desc}" placeholder="Add Description" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)">
+                                </div>
+                            </td>
                             
                             <td class="num-col planner-hide-mobile"><input type="${inputType}" inputmode="text" id="pe-inc" style="width:100%; padding:6px; box-sizing:border-box; text-align:right;" value="${formatInputNumber(p.inc)}" placeholder="0" onfocus="handleNumberFocus(this, ${p.inc})" oninput="updatePlannerBalance()" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
                             <td class="num-col planner-hide-mobile"><input type="${inputType}" inputmode="text" id="pe-exp" style="width:100%; padding:6px; box-sizing:border-box; text-align:right; color:#dc2626;" value="${formatInputNumber(p.exp)}" placeholder="0" onfocus="handleNumberFocus(this, ${p.exp})" oninput="updatePlannerBalance()" onblur="acceptPlannerEdit(event)" onkeydown="if(event.key==='Enter' || event.key==='Escape') acceptPlannerEdit(event)"></td>
 
                             <td class="planner-hide-mobile">
-                                <select id="pe-type" style="padding:6px; width:100%; box-sizing:border-box; font-size:0.9rem;">
+                                <select id="pe-type" style="padding:6px; width:100%; box-sizing:border-box; font-size:0.9rem;" onblur="acceptPlannerEdit(event)">
                                     <option value="Planned" ${p.type==='Planned'?'selected':''}>Planned</option>
                                     <option value="Actual" ${p.type==='Actual'?'selected':''}>Actual</option>
                                 </select>
@@ -2472,7 +2539,7 @@
                         let shortTag = p.type === 'Actual' ? 'A' : 'P';
                         
                         html += `<tr class="clickable-row bg-white" onclick="openPlannerEdit('${p.id}', event)" data-id="${p.id}" data-month="${mStr}">
-                            <td style="text-align:center;" class="planner-drag-mobile-hide"><span class="drag-handle" onmousedown="startCustomDrag(event, 'planner-item', '${p.id}', null, null, '${mStr}')" ontouchstart="handlePlannerTouchStart(event, '${p.id}', '${mStr}')" ontouchmove="handlePlannerTouchMove()" ontouchend="handlePlannerTouchEnd()">≡</span></td>
+                            <td style="text-align:center;" class="planner-drag-mobile-hide"><span class="drag-handle" onmousedown="startCustomDrag(event, 'planner-item', '${p.id}', null, null, '${mStr}')" ontouchstart="handlePlannerTouchStart(event, '${p.id}', '${mStr}')" ontouchmove="handlePlannerTouchMove(event)" ontouchend="handlePlannerTouchEnd()">≡</span></td>
                             <td>${dispDesc} <span class="short-text" style="background-color:${tagBg}; color:${tagColor}; padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 0.65rem; margin-left: 5px; cursor: pointer;" onclick="openTypeMenu('${p.id}', event)">${shortTag}</span></td>
                             <td class="num-col planner-hide-mobile">${p.inc === 0 ? '' : formatMoney(p.inc)}</td>
                             <td class="num-col planner-hide-mobile" style="color:#dc2626;">${p.exp === 0 ? '' : formatMoney(p.exp)}</td>
@@ -2572,6 +2639,19 @@
             m++; if (m > 12) { m = 1; y++; }
         }
         document.getElementById('planner-body').innerHTML = html;
+        
+        // Refocus logic to maintain flow if an arrow was just clicked
+        if(activePlannerEditId) {
+             setTimeout(() => {
+                 let descEl = document.getElementById('pe-desc');
+                 if(descEl) {
+                     descEl.focus();
+                     // Set cursor to end of text
+                     let val = descEl.value; 
+                     descEl.value = ''; descEl.value = val;
+                 }
+             }, 50);
+        }
     }
 
     function startAddPlannerItem(monthStr, event) {
@@ -2581,7 +2661,6 @@
         state.planner.push({ id: newId, month: monthStr, desc: '', inc: 0, exp: 0, type: 'Planned' });
         activePlannerEditId = newId;
         renderPlanner();
-        setTimeout(() => document.getElementById('pe-desc').focus(), 50);
     }
 
     function openPlannerEdit(id, event) {
@@ -2594,7 +2673,6 @@
         if(activePlannerEditId) acceptPlannerEdit();
         activePlannerEditId = id;
         renderPlanner();
-        setTimeout(() => document.getElementById('pe-desc').focus(), 50);
     }
 
     function acceptPlannerEdit(event) {
